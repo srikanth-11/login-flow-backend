@@ -314,7 +314,7 @@ app.post("/login", async (req, res) => {
       if (isUserAuthenticated) {
 
         
-          let token = jwt.sign({ userid: user._id, email: user.email }, process.env.JWT_TOKEN, { expiresIn: "1h" });
+          let token = jwt.sign({ userid: user._id, email: user.email }, process.env.JWT_TOKEN);
           res.json({
               message: 'User Authenticated Successfully',
               token,
