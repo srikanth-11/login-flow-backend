@@ -184,6 +184,7 @@ app.post("/forget-password", async (req, res) => {
 });
 
 app.put("/reset", async (req, res) => {
+  console.log("enter")
  console.log("reset", decodeURIComponent(req.body.token));
  let connection = await MongoClient.connect(url, { useUnifiedTopology: true });
  try {
