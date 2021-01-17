@@ -273,7 +273,7 @@ function authenticate(req, res, next) {
   if (req.headers.authorization) {
     console.log(req.headers.authorization)
 
-      jwt.verify(req.headers.authorization, JWT_TOKEN, function (err, data) {
+      jwt.verify(req.headers.authorization, process.env.JWT_TOKEN, function (err, data) {
         
           if (data) {
             console.log(data)
