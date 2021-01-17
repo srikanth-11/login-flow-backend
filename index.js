@@ -192,7 +192,7 @@ app.put("/reset", async (req, res) => {
    let user = await db
      .collection("users")
      .findOne({
-       resetToken: decodeURI(req.body.token),
+       resetToken: decodeURIComponent(req.body.token),
        resetTokenExpires: { $gt: Date.now() },
      });
    console.log(user);
