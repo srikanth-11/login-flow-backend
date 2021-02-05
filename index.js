@@ -182,6 +182,7 @@ app.post("/forget-password", async (req, res) => {
 });
 
 app.put("/reset", async (req, res) => {
+<<<<<<< HEAD
   console.log("reset", decodeURIComponent(req.body.token));
   let connection = await MongoClient.connect(url, { useUnifiedTopology: true });
   try {
@@ -226,6 +227,55 @@ app.put("/reset", async (req, res) => {
             });
 
             let mailBody = `<div>
+=======
+  console.log("enter")
+ console.log("reset", decodeURIComponent(req.body.token));
+ let connection = await MongoClient.connect(url, { useUnifiedTopology: true });
+ try {
+   let db = connection.db(dbName);
+
+   let user = await db
+     .collection("users")
+     .findOne({
+       resetToken: decodeURIComponent(req.body.token),
+       resetTokenExpires: { $gt: Date.now() },
+     });
+   console.log(user);
+   if (user) {
+     let salt = await bycrypt.genSalt(10);
+     console.log(req.body.password);
+     let password = await bycrypt.hash(req.body.password, salt);
+     console.log(password);
+     let updateInfo = await db
+       .collection("users")
+       .updateOne({ _id: user._id }, { $set: { password: password } });
+
+     if (updateInfo.modifiedCount > 0) {
+       await db
+         .collection("users")
+         .updateOne(
+           { _id: user._id },
+           { $set: { resetToken: "", resetTokenExpires: "" } }
+         );
+
+       async function sendMail() {
+         try {
+           const accessToken = await oAuth2Client.getAccessToken();
+
+           const transport = nodemailer.createTransport({
+             service: "gmail",
+             auth: {
+               type: "OAuth2",
+               user: "kasireddysrikanth27@gmail.com",
+               clientId: process.env.CLIENT_ID,
+               clientSecret: process.env.CLEINT_SECRET,
+               refreshToken: process.env.REFRESH_TOKEN,
+               accessToken: accessToken,
+             },
+           });
+
+           let mailBody = `<div>
+>>>>>>> f810bf6ec5297d385aaca7f5181d033e1f52a4fa
                <h3> Password reset successful </h3>
                <p>Please click the given link to login <a target="_blank" href="${origin}/index.html"> click here </a></p>
            </div>`;
@@ -266,6 +316,7 @@ app.put("/reset", async (req, res) => {
 
 function authenticate(req, res, next) {
   if (req.headers.authorization) {
+<<<<<<< HEAD
     console.log(req.headers.authorization);
 
     jwt.verify(
@@ -278,6 +329,24 @@ function authenticate(req, res, next) {
             req.body.userid = data.userid;
             req.body.email = data.email;
             next();
+=======
+    console.log(req.headers.authorization)
+
+      jwt.verify(req.headers.authorization, process.env.JWT_TOKEN, function (err, data) {
+        
+          if (data) {
+            console.log(data)
+              if (data.userid) {
+                  req.body.userid = data.userid
+                  req.body.email = data.email
+                  next()
+              } else {
+                  res.status(401).json({
+                      message: "Not Authorized"
+                  })
+              }
+
+>>>>>>> f810bf6ec5297d385aaca7f5181d033e1f52a4fa
           } else {
             res.status(401).json({
               message: "Not Authorized",
@@ -309,6 +378,7 @@ app.post("/login", async (req, res) => {
         user.password
       );
       if (isUserAuthenticated) {
+<<<<<<< HEAD
         let token = jwt.sign(
           { userid: user._id, email: user.email },
           process.env.JWT_TOKEN,
@@ -321,6 +391,19 @@ app.post("/login", async (req, res) => {
             email: user.email,
           },
         });
+=======
+
+        
+          let token = jwt.sign({ userid: user._id, email: user.email }, process.env.JWT_TOKEN);
+          res.json({
+              message: 'User Authenticated Successfully',
+              token,
+              data: {
+                  email: user.email
+              }
+          })
+       
+>>>>>>> f810bf6ec5297d385aaca7f5181d033e1f52a4fa
       } else {
         res.status(400).json({
           message: "Password is wrong for the provided email",
