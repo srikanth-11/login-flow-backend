@@ -136,7 +136,9 @@ app.post("/forget-password", async (req, res) => {
           const accessToken = await oAuth2Client.getAccessToken();
 
           const transport = nodemailer.createTransport({
-            service: "gmail",
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: {
               type: "OAuth2",
               user: "kasireddysrikanth27@gmail.com",
