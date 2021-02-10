@@ -147,7 +147,7 @@ app.post("/forget-password", async (req, res) => {
               refreshToken: process.env.REFRESH_TOKEN,
               accessToken: accessToken,
             },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
           });
 
           const mailOptions = {
