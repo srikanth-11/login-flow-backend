@@ -148,7 +148,7 @@ app.put("/reset", async (req, res) => {
 
           const mailSubject = "password reset successful for  urlshortner app";
     
-          const mailTo = req.body.email;
+          const mailTo = user.email;
           const mailBody = `<div>
           <h3> Password reset successful </h3>
             <p>Please click the given link to login <a target="_blank" href="${origin}/index.html"> click here </a></p>
