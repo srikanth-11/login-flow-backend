@@ -8,10 +8,8 @@ const MongoClient = mongodb.MongoClient;
 const cors = require("cors");
 const valid_url = require("valid-url");
 var jwt = require("jsonwebtoken");
-const JWT_TOKEN = "asiuytredsvkvofiduvtredsw";
 const bycrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
-const { google } = require("googleapis");
+const MailService = require("./services/mail");
 
 const app = express();
 const url =
@@ -27,12 +25,6 @@ app.use(
 );
 const origin = "https://sri-url-shortner-12.netlify.app";
 
-const oAuth2Client = new google.auth.OAuth2(
-  process.env.CLIENT_ID,
-  process.env.CLEINT_SECRET,
-  process.env.REDIRECT_URI
-);
-oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
 app.post("/sign_up", async (req, res) => {
   let connection = await MongoClient.connect(url, { useUnifiedTopology: true });
@@ -51,46 +43,18 @@ app.post("/sign_up", async (req, res) => {
         .collection("users")
         .insertOne({ email: req.body.email, password: req.body.password });
 
-      async function sendMail() {
-        try {
-          const accessToken = await oAuth2Client.getAccessToken();
+        const mail = new MailService();
 
-          const transport = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-              type: "OAuth2",
-              user: "kasireddysrikanth27@gmail.com",
-              clientId: process.env.CLIENT_ID,
-              clientSecret: process.env.CLEINT_SECRET,
-              refreshToken: process.env.REFRESH_TOKEN,
-              accessToken: accessToken,
-            },
-          });
+      const mailSubject = "Registration for urlshortner app";
 
-          let mailBody = `<div>
+      const mailTo = req.body.email;
+      const mailBody = `<div>
    <h3> successfully registered </h3>
    <p>Please click the given link to login <a target="_blank" href="${origin}/index.html"> click here </a></p>
 </div>`;
+      mail.sendMail(mailSubject, mailBody, mailTo);
 
-          const mailOptions = {
-            from: "url-shortner <kasireddysrikanth27@gmail.com>",
-            to: req.body.email,
-            subject: "Registration",
-            text: "urlshortner",
-            html: mailBody,
-          };
-
-          const result = await transport.sendMail(mailOptions);
-          return result;
-        } catch (error) {
-          return error;
-        }
-      }
-
-      sendMail()
-        .then((result) => console.log("Email sent...", result))
-        .catch((error) => console.log(error.message));
-
+      
       res.json({
         message: "User Registered Successfully",
       });
@@ -123,52 +87,21 @@ app.post("/forget-password", async (req, res) => {
           $set: { resetToken: token, resetTokenExpires: Date.now() + 300000 },
         }
       );
+      const mail = new MailService();
 
-      let mailBody = `<div>
+      const mailSubject = "password reset for urlshortner app";
+
+      const mailTo = req.body.email;
+      const mailBody = `<div>
                <h3>Reset Password</h3>
                <p>Please click the given link to reset your password <a target="_blank" href="${origin}/resetpassword.html?key=${encodeURIComponent(
         token
       )}"> click here </a></p>
            </div>`;
+           mail.sendMail(mailSubject, mailBody, mailTo);
 
-      async function sendMail() {
-        try {
-          const accessToken = await oAuth2Client.getAccessToken();
 
-          const transport = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,
-            auth: {
-              type: "OAuth2",
-              user: "kasireddysrikanth27@gmail.com",
-              clientId: process.env.CLIENT_ID,
-              clientSecret: process.env.CLEINT_SECRET,
-              refreshToken: process.env.REFRESH_TOKEN,
-              accessToken: accessToken,
-            },
-            tls: { rejectUnauthorized: true },
-          });
-
-          const mailOptions = {
-            from: "url-shortner <kasireddysrikanth27@gmail.com>",
-            to: req.body.email,
-            subject: "Password reset",
-            text: "urlshortner",
-            html: mailBody,
-          };
-
-          const result = await transport.sendMail(mailOptions);
-          return result;
-        } catch (error) {
-          return error;
-        }
-      }
-
-      sendMail()
-        .then((result) => console.log("Email sent...", result))
-        .catch((error) => console.log(error.message));
-
+      
       res.json({
         message: "Email sent",
       });
@@ -211,46 +144,17 @@ app.put("/reset", async (req, res) => {
             { _id: user._id },
             { $set: { resetToken: "", resetTokenExpires: "" } }
           );
+          const mail = new MailService();
 
-        async function sendMail() {
-          try {
-            const accessToken = await oAuth2Client.getAccessToken();
-
-            const transport = nodemailer.createTransport({
-              service: "gmail",
-              auth: {
-                type: "OAuth2",
-                user: "kasireddysrikanth27@gmail.com",
-                clientId: process.env.CLIENT_ID,
-                clientSecret: process.env.CLEINT_SECRET,
-                refreshToken: process.env.REFRESH_TOKEN,
-                accessToken: accessToken,
-              },
-            });
-
-            let mailBody = `<div>
-            <h3> Password reset successful </h3>
-              <p>Please click the given link to login <a target="_blank" href="${origin}/index.html"> click here </a></p>
-          </div>`;
-
-            const mailOptions = {
-              from: "url-shortner <kasireddysrikanth27@gmail.com>",
-              to: user.email,
-              subject: "Password reset",
-              text: "urlshortner",
-              html: mailBody,
-            };
-
-            const result = await transport.sendMail(mailOptions);
-            return result;
-          } catch (error) {
-            return error;
-          }
-        }
-
-        sendMail()
-          .then((result) => console.log("Email sent...", result))
-          .catch((error) => console.log(error.message));
+          const mailSubject = "password reset successful for  urlshortner app";
+    
+          const mailTo = req.body.email;
+          const mailBody = `<div>
+          <h3> Password reset successful </h3>
+            <p>Please click the given link to login <a target="_blank" href="${origin}/index.html"> click here </a></p>
+        </div>`;
+        mail.sendMail(mailSubject, mailBody, mailTo);
+        
       }
       res.status(200).json({
         message: "password reset succesfull",
